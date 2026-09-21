@@ -10,11 +10,13 @@ import {
   Plus,
   X,
   Clock,
-  Cpu
+  Cpu,
+  Sparkles
 } from 'lucide-react';
 import { useQuestionStore } from '../../stores/useQuestionStore';
 import { SolutionApproach } from '../../types';
 import { parseApproaches, serializeApproaches } from '../../utils/approaches';
+import { analyzeComplexity } from '../../utils/complexityAnalyzer';
 import { CodeSyntaxHighlighter } from './CodeSyntaxHighlighter';
 
 const LANGUAGES = [
@@ -38,6 +40,7 @@ export const CodeBlock: React.FC = () => {
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [showTimePresets, setShowTimePresets] = useState(false);
   const [showSpacePresets, setShowSpacePresets] = useState(false);
+  const [detectedToast, setDetectedToast] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -76,6 +79,57 @@ export const CodeBlock: React.FC = () => {
     updateField('solutionLanguage', serialized.solutionLanguage);
     updateField('timeComplexity', serialized.timeComplexity);
     updateField('spaceComplexity', serialized.spaceComplexity);
+  };
+
+  const handleUpdateApproachMultiple = (updates: Partial<SolutionApproach>) => {
+    const updated = approaches.map(a => {
+      if (a.id === currentApproach.id) {
+        return { ...a, ...updates };
+      }
+      return a;
+    });
+
+    const serialized = serializeApproaches(updated);
+    updateField('solutionCode', serialized.solutionCode);
+    updateField('solutionLanguage', serialized.solutionLanguage);
+    updateField('timeComplexity', serialized.timeComplexity);
+    updateField('spaceComplexity', serialized.spaceComplexity);
+  };
+
+  const triggerAutoDetect = (targetCode?: string, force = false) => {
+    const codeToAnalyze = targetCode !== undefined ? targetCode : (currentApproach.code || '');
+    if (!codeToAnalyze || !codeToAnalyze.trim()) return;
+
+    const result = analyzeComplexity(codeToAnalyze, currentApproach.language);
+    if (!result.timeComplexity && !result.spaceComplexity) return;
+
+    const newTime = (force || !currentApproach.timeComplexity)
+      ? (result.timeComplexity || currentApproach.timeComplexity)
+      : currentApproach.timeComplexity;
+    const newSpace = (force || !currentApproach.spaceComplexity)
+      ? (result.spaceComplexity || currentApproach.spaceComplexity)
+      : currentApproach.spaceComplexity;
+
+    handleUpdateApproachMultiple({
+      timeComplexity: newTime,
+      spaceComplexity: newSpace,
+      ...(targetCode !== undefined ? { code: targetCode } : {})
+    });
+
+    setDetectedToast(`${newTime} / ${newSpace}`);
+    setTimeout(() => setDetectedToast(null), 3500);
+  };
+
+  const handlePasteCode = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (!pastedText || !pastedText.trim()) return;
+
+    // After paste settles in textarea, auto-detect time & space complexity
+    setTimeout(() => {
+      const textarea = e.target as HTMLTextAreaElement;
+      const fullCode = textarea?.value || pastedText;
+      triggerAutoDetect(fullCode, true);
+    }, 50);
   };
 
   const handleAddApproach = () => {
@@ -202,7 +256,8 @@ export const CodeBlock: React.FC = () => {
           <textarea
             value={code}
             onChange={(e) => handleUpdateApproach('code', e.target.value)}
-            placeholder="// Write solution code for this approach..."
+            onPaste={handlePasteCode}
+            placeholder="// Write or paste solution code for this approach..."
             rows={fullscreen ? 28 : 14}
             spellCheck={false}
             className="flex-1 p-3 bg-transparent font-mono text-xs leading-relaxed text-slate-200 placeholder:text-slate-600 focus:outline-none resize-y selection:bg-indigo-500/30 whitespace-pre overflow-x-auto"
@@ -213,10 +268,21 @@ export const CodeBlock: React.FC = () => {
 
     return (
       <div
+        tabIndex={0}
         onClick={() => {
           if (!code.trim()) setIsEditing(true);
         }}
-        className={`cursor-pointer ${fullscreen ? 'h-[calc(100vh-160px)] overflow-y-auto' : 'max-h-[500px] overflow-y-auto'}`}
+        onPaste={(e) => {
+          setIsEditing(true);
+          const pastedText = e.clipboardData.getData('text');
+          if (pastedText && pastedText.trim()) {
+            handleUpdateApproach('code', pastedText);
+            setTimeout(() => {
+              triggerAutoDetect(pastedText, true);
+            }, 50);
+          }
+        }}
+        className={`cursor-pointer focus:outline-none ${fullscreen ? 'h-[calc(100vh-160px)] overflow-y-auto' : 'max-h-[500px] overflow-y-auto'}`}
       >
         <CodeSyntaxHighlighter code={code} language={lang} showLineNumbers={true} />
       </div>
@@ -233,7 +299,7 @@ export const CodeBlock: React.FC = () => {
         {/* Sub-Header: Complexity pills, Language selector, Copy & Fullscreen */}
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-[#12161f] border-b border-slate-800 text-xs">
           {/* Approach-specific Time & Space Complexity */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Time */}
             <div className="relative flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-indigo-400" />
@@ -301,6 +367,25 @@ export const CodeBlock: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Auto Complexity Detect Button */}
+            <button
+              type="button"
+              onClick={() => triggerAutoDetect(undefined, true)}
+              title="Automatically detect Time & Space Complexity from code"
+              className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 hover:text-indigo-200 transition shadow-sm"
+            >
+              <Sparkles className="w-3 h-3 text-indigo-400" />
+              <span>Auto</span>
+            </button>
+
+            {/* Toast feedback pill */}
+            {detectedToast && (
+              <span className="flex items-center gap-1 text-[11px] text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-2 py-0.5 rounded animate-in fade-in duration-150">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span>Auto-detected: {detectedToast}</span>
+              </span>
+            )}
           </div>
 
           {/* Action Toolbar */}
@@ -389,6 +474,37 @@ export const CodeBlock: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2.5">
+              {/* Complexity in Fullscreen */}
+              <div className="flex items-center gap-2 mr-2 bg-[#0d1117] px-2.5 py-1 rounded-lg border border-slate-700/80 text-xs">
+                <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-[11px] text-slate-400">Time:</span>
+                <input
+                  type="text"
+                  value={currentApproach.timeComplexity || ''}
+                  onChange={(e) => handleUpdateApproach('timeComplexity', e.target.value)}
+                  placeholder="O(n)"
+                  className="w-16 px-1.5 py-0.5 font-mono text-xs rounded bg-[#1c2128] border border-slate-700 text-slate-200 focus:outline-none focus:border-indigo-500"
+                />
+                <Cpu className="w-3.5 h-3.5 text-emerald-400 ml-1" />
+                <span className="text-[11px] text-slate-400">Space:</span>
+                <input
+                  type="text"
+                  value={currentApproach.spaceComplexity || ''}
+                  onChange={(e) => handleUpdateApproach('spaceComplexity', e.target.value)}
+                  placeholder="O(1)"
+                  className="w-16 px-1.5 py-0.5 font-mono text-xs rounded bg-[#1c2128] border border-slate-700 text-slate-200 focus:outline-none focus:border-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => triggerAutoDetect(undefined, true)}
+                  title="Auto-detect Time & Space Complexity"
+                  className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700 text-indigo-300 transition ml-1"
+                >
+                  <Sparkles className="w-3 h-3 text-indigo-400" />
+                  <span>Auto</span>
+                </button>
+              </div>
+
               {/* Language Selector */}
               <select
                 value={lang}
