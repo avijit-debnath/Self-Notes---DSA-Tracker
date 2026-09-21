@@ -15,7 +15,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  Copyright
 } from 'lucide-react';
 import { useSettingsStore, SettingsTab, ThemeMode } from '../../stores/useSettingsStore';
 import { useTreeStore } from '../../stores/useTreeStore';
@@ -382,12 +383,56 @@ export const SettingsModal: React.FC = () => {
 
             {/* About Tab */}
             {activeTab === 'about' && (
-              <div className="flex flex-col gap-3 py-2">
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">SelfNote — Personal DSA Tracker</h4>
-                <p className="text-slate-400 text-xs">Version 1.0.0 (Desktop Edition)</p>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs mt-2">
+              <div className="flex flex-col gap-4 py-1">
+                <div>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>SelfNote — Personal DSA Tracker</span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                      v1.0.0
+                    </span>
+                  </h4>
+                  <p className="text-slate-400 text-xs mt-0.5">Desktop Edition • Offline-First Architecture</p>
+                </div>
+
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
                   Built specifically for developers tackling Data Structures and Algorithms. Combines the speed of a local SQLite database, a file explorer tree hierarchy, Notion-style notes, LeetCode link extraction, handwritten diagram photo galleries, and offline-first GitHub cloud backups.
                 </p>
+
+                {/* Author Card */}
+                <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-indigo-200/80 dark:border-indigo-900/60 bg-gradient-to-r from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/30 dark:to-purple-950/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+                      AD
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 dark:text-white text-xs">
+                          Avijit Debnath
+                        </span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-900/70 text-indigo-600 dark:text-indigo-300">
+                          Author & Architect
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                        Data Scientist and Developer
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legal & Copyright Notice */}
+                <div className="flex flex-col gap-1.5 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19]">
+                  <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold text-xs">
+                    <Copyright className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Legal & Copyright Notice</span>
+                  </div>
+                  <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                    Copyright © 2026 <span className="text-indigo-600 dark:text-indigo-400 font-semibold">Avijit Debnath - Data Scientist and Developer</span>. All rights reserved.
+                  </p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                    This software, source code, visual interface, and proprietary tracking features are the intellectual property of the author. Protected under national and international copyright laws.
+                  </p>
+                </div>
               </div>
             )}
           </div>

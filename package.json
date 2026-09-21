@@ -2,6 +2,8 @@
   "name": "selfnote-desktop",
   "version": "1.0.0",
   "description": "SelfNote - Personal DSA Tracker & Notebook",
+  "author": "Avijit Debnath - Data Scientist and Developer",
+  "license": "UNLICENSED",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",

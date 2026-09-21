@@ -48,3 +48,22 @@ npm run build
 - **Icons**: Lucide React
 - **Database**: SQLite (sql.js)
 - **Bundler**: Vite
+
+---
+
+## 👤 Author
+
+**Avijit Debnath**  
+*Data Scientist and Developer*  
+- **GitHub**: [@avijit-debnath](https://github.com/avijit-debnath)  
+- **Repository**: [Self-Notes---DSA-Tracker](https://github.com/avijit-debnath/Self-Notes---DSA-Tracker)
+
+---
+
+## ⚖️ Legal & Copyright
+
+Copyright © 2026 **Avijit Debnath - Data Scientist and Developer**. All rights reserved.
+
+This software, its source code, design architecture, and documentation are the proprietary intellectual property of **Avijit Debnath - Data Scientist and Developer**. 
+
+Unauthorized copying, modification, distribution, or reverse engineering of this software and its algorithms without explicit written permission is strictly prohibited.
