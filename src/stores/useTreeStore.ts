@@ -36,6 +36,7 @@ interface TreeState {
   toggleImportantQuestion: (id: string) => Promise<void>;
   duplicateQuestion: (id: string) => Promise<void>;
   moveQuestion: (id: string, newBranchId: string) => Promise<void>;
+  renameQuestion: (id: string, newTitle: string) => Promise<void>;
 }
 
 export const useTreeStore = create<TreeState>((set, get) => ({
@@ -277,7 +278,21 @@ export const useTreeStore = create<TreeState>((set, get) => ({
   moveQuestion: async (id, newBranchId) => {
     const q = get().questions.find(x => x.id === id);
     if (!q) return;
-    const updated = { ...q, branchId: newBranchId };
+    const updated = { ...q, branchId: newBranchId, updatedAt: new Date().toISOString() };
+    await api.saveQuestion(updated);
+    const nextExpanded = new Set(get().expandedBranchIds);
+    nextExpanded.add(newBranchId);
+    set(state => ({
+      questions: state.questions.map(x => x.id === id ? updated : x),
+      expandedBranchIds: nextExpanded,
+      activeBranchId: state.activeQuestionId === id ? newBranchId : state.activeBranchId
+    }));
+  },
+
+  renameQuestion: async (id, newTitle) => {
+    const q = get().questions.find(x => x.id === id);
+    if (!q || !newTitle.trim()) return;
+    const updated = { ...q, title: newTitle.trim(), updatedAt: new Date().toISOString() };
     await api.saveQuestion(updated);
     set(state => ({
       questions: state.questions.map(x => x.id === id ? updated : x)

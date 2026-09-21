@@ -76,6 +76,7 @@ export const BranchNode: React.FC<BranchNodeProps> = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
   };
 
@@ -87,7 +88,7 @@ export const BranchNode: React.FC<BranchNodeProps> = ({
     e.preventDefault();
     setIsDragOver(false);
     try {
-      const dataStr = e.dataTransfer.getData('application/json');
+      const dataStr = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain');
       if (!dataStr) return;
       const { type, id } = JSON.parse(dataStr);
       if (type === 'question') {
@@ -114,7 +115,10 @@ export const BranchNode: React.FC<BranchNodeProps> = ({
         onDrop={handleDrop}
         draggable
         onDragStart={(e) => {
-          e.dataTransfer.setData('application/json', JSON.stringify({ type: 'branch', id: branch.id }));
+          const payload = JSON.stringify({ type: 'branch', id: branch.id });
+          e.dataTransfer.setData('application/json', payload);
+          e.dataTransfer.setData('text/plain', payload);
+          e.dataTransfer.effectAllowed = 'move';
         }}
         style={{ paddingLeft: `${depth * 14 + 6}px` }}
         className={`group relative flex items-center justify-between py-1.5 pr-2 rounded-md cursor-pointer transition select-none text-xs font-medium ${

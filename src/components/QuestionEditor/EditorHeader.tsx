@@ -10,7 +10,9 @@ import {
   Sparkles,
   Link2,
   Columns2,
-  Rows2
+  Rows2,
+  Folder,
+  MoveRight
 } from 'lucide-react';
 import { Difficulty, QuestionStatus } from '../../types';
 import { useQuestionStore } from '../../stores/useQuestionStore';
@@ -19,17 +21,19 @@ import { api } from '../../services/api';
 
 interface EditorHeaderProps {
   onOpenDeleteConfirm: (id: string, title: string) => void;
+  onOpenMoveModal?: (id: string) => void;
   layoutMode?: 'split' | 'stacked';
   onToggleLayout?: () => void;
 }
 
 export const EditorHeader: React.FC<EditorHeaderProps> = ({
   onOpenDeleteConfirm,
+  onOpenMoveModal,
   layoutMode = 'stacked',
   onToggleLayout
 }) => {
   const { currentQuestion, updateField, forceSave } = useQuestionStore();
-  const { setActiveView } = useTreeStore();
+  const { setActiveView, branches } = useTreeStore();
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatusMsg, setSyncStatusMsg] = useState('');
 
@@ -146,6 +150,24 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
               <span>Open on Platform</span>
             </button>
           )}
+
+          {/* Current Branch badge / Move button */}
+          {(() => {
+            const currentBranch = branches.find(b => b.id === currentQuestion.branchId);
+            if (!currentBranch) return null;
+            return (
+              <button
+                type="button"
+                onClick={() => onOpenMoveModal?.(currentQuestion.id)}
+                className="flex items-center gap-1.5 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800/80 dark:hover:bg-indigo-950/50 rounded-md transition border border-slate-200/80 dark:border-slate-700/80 group"
+                title={`Branch: ${currentBranch.name} — Click to move to another branch`}
+              >
+                <Folder className="w-3 h-3 text-indigo-500 shrink-0" />
+                <span className="truncate max-w-[150px] font-medium">{currentBranch.name}</span>
+                <MoveRight className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+              </button>
+            );
+          })()}
         </div>
 
         <div className="flex items-center gap-2">

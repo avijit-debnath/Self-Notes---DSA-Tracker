@@ -15,9 +15,10 @@ import { FileText, Code2, Edit3, Check, BrainCircuit } from 'lucide-react';
 
 interface QuestionEditorViewProps {
   onOpenDeleteConfirm: (id: string, title: string) => void;
+  onOpenMoveModal?: (id: string) => void;
 }
 
-export const QuestionEditorView: React.FC<QuestionEditorViewProps> = ({ onOpenDeleteConfirm }) => {
+export const QuestionEditorView: React.FC<QuestionEditorViewProps> = ({ onOpenDeleteConfirm, onOpenMoveModal }) => {
   const { activeQuestionId } = useTreeStore();
   const { currentQuestion, loadQuestion, updateField, isLoading } = useQuestionStore();
   const [isEditingStatement, setIsEditingStatement] = useState(false);
@@ -59,6 +60,7 @@ export const QuestionEditorView: React.FC<QuestionEditorViewProps> = ({ onOpenDe
         <div className="px-6 pt-5 pb-3 border-b border-slate-200/80 dark:border-slate-800 shrink-0 bg-white dark:bg-[#0d1117]">
           <EditorHeader
             onOpenDeleteConfirm={onOpenDeleteConfirm}
+            onOpenMoveModal={onOpenMoveModal}
             layoutMode={layoutMode}
             onToggleLayout={toggleLayoutMode}
           />

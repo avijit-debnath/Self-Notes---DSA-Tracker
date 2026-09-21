@@ -8,6 +8,8 @@ import { TrashView } from './components/Trash/TrashView';
 import { ProblemImportModal } from './components/Modals/ProblemImportModal';
 import { GlobalSearchModal } from './components/Modals/GlobalSearchModal';
 import { BranchModal, BranchModalMode } from './components/Modals/BranchModal';
+import { MoveModal } from './components/Modals/MoveModal';
+import { RenameModal } from './components/Modals/RenameModal';
 import { ConfirmModal } from './components/Modals/ConfirmModal';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { useTreeStore } from './stores/useTreeStore';
@@ -19,6 +21,7 @@ export const App: React.FC = () => {
   const {
     activeView,
     branches,
+    questions,
     loadInitialData,
     createQuestion,
     deleteBranch,
@@ -40,6 +43,32 @@ export const App: React.FC = () => {
     initialName?: string;
     initialParentId?: string | null;
   }>({ isOpen: false, mode: 'create' });
+
+  const [moveModalState, setMoveModalState] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    title: string;
+    type: 'question' | 'branch';
+    currentBranchId?: string | null;
+  }>({
+    isOpen: false,
+    id: null,
+    title: '',
+    type: 'question',
+    currentBranchId: null
+  });
+
+  const [renameModalState, setRenameModalState] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    currentName: string;
+    type: 'question' | 'branch';
+  }>({
+    isOpen: false,
+    id: null,
+    currentName: '',
+    type: 'question'
+  });
 
   const [confirmModalState, setConfirmModalState] = useState<{
     isOpen: boolean;
@@ -121,34 +150,33 @@ export const App: React.FC = () => {
   };
 
   const handleOpenRenameModal = (id: string, currentName: string, type: 'branch' | 'question') => {
-    if (type === 'branch') {
-      setBranchModalState({
-        isOpen: true,
-        mode: 'rename',
-        targetId: id,
-        initialName: currentName
-      });
-    } else {
-      const newTitle = prompt('Enter new problem title:', currentName);
-      if (newTitle && newTitle.trim()) {
-        useTreeStore.getState().duplicateQuestion(id); // Or direct rename
-      }
-    }
+    setRenameModalState({
+      isOpen: true,
+      id,
+      currentName,
+      type
+    });
   };
 
   const handleOpenMoveModal = (id: string, type: 'branch' | 'question') => {
-    if (type === 'branch') {
-      setBranchModalState({
+    if (type === 'question') {
+      const q = questions.find(item => item.id === id);
+      setMoveModalState({
         isOpen: true,
-        mode: 'move',
-        targetId: id
+        id,
+        title: q?.title || 'Problem',
+        type: 'question',
+        currentBranchId: q?.branchId || null
       });
     } else {
-      const targetBranchName = prompt('Enter target branch name:');
-      const b = branches.find(item => item.name.toLowerCase() === (targetBranchName || '').toLowerCase());
-      if (b) {
-        useTreeStore.getState().moveQuestion(id, b.id);
-      }
+      const b = branches.find(item => item.id === id);
+      setMoveModalState({
+        isOpen: true,
+        id,
+        title: b?.name || 'Branch',
+        type: 'branch',
+        currentBranchId: b?.parentId || null
+      });
     }
   };
 
@@ -200,6 +228,7 @@ export const App: React.FC = () => {
           {activeView === 'question' && (
             <QuestionEditorView
               onOpenDeleteConfirm={(id, title) => handleOpenDeleteConfirm(id, title, 'question')}
+              onOpenMoveModal={(id) => handleOpenMoveModal(id, 'question')}
             />
           )}
         </main>
@@ -220,6 +249,23 @@ export const App: React.FC = () => {
         initialName={branchModalState.initialName}
         initialParentId={branchModalState.initialParentId}
         onClose={() => setBranchModalState(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <MoveModal
+        isOpen={moveModalState.isOpen}
+        itemId={moveModalState.id}
+        itemTitle={moveModalState.title}
+        itemType={moveModalState.type}
+        currentBranchId={moveModalState.currentBranchId}
+        onClose={() => setMoveModalState(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <RenameModal
+        isOpen={renameModalState.isOpen}
+        itemId={renameModalState.id}
+        currentName={renameModalState.currentName}
+        type={renameModalState.type}
+        onClose={() => setRenameModalState(prev => ({ ...prev, isOpen: false }))}
       />
 
       <ConfirmModal

@@ -63,7 +63,10 @@ export const QuestionNode: React.FC<QuestionNodeProps> = ({
         onContextMenu={handleContextMenu}
         draggable
         onDragStart={(e) => {
-          e.dataTransfer.setData('application/json', JSON.stringify({ type: 'question', id: question.id }));
+          const payload = JSON.stringify({ type: 'question', id: question.id });
+          e.dataTransfer.setData('application/json', payload);
+          e.dataTransfer.setData('text/plain', payload);
+          e.dataTransfer.effectAllowed = 'move';
         }}
         style={{ paddingLeft: `${depth * 14 + 10}px` }}
         className={`group relative flex items-center justify-between py-1.5 pr-2 rounded-md cursor-pointer transition select-none text-xs ${
