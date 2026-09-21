@@ -13,7 +13,10 @@ let saveTimeout: NodeJS.Timeout | null = null;
 export async function initDatabase(): Promise<Database> {
   if (db) return db;
 
-  const SQL = await initSqlJs();
+  const wasmCandidate = path.join(__dirname, 'sql-wasm.wasm');
+  const SQL = await initSqlJs(
+    fs.existsSync(wasmCandidate) ? { locateFile: () => wasmCandidate } : undefined
+  );
   const userDataDir = app ? app.getPath('userData') : path.join(process.cwd(), 'userData');
   if (!fs.existsSync(userDataDir)) {
     fs.mkdirSync(userDataDir, { recursive: true });

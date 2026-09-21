@@ -37,12 +37,17 @@ const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged;
 async function createWindow() {
   await initDatabase();
 
+  const appIcon = process.platform === 'win32'
+    ? path.join(__dirname, '../public/icon.ico')
+    : path.join(__dirname, '../public/icon.png');
+
   mainWindow = new BrowserWindow({
     width: 1360,
     height: 860,
     minWidth: 1100,
     minHeight: 680,
-    title: 'SelfNote — Personal DSA Tracker',
+    title: 'Self Notes',
+    icon: fs.existsSync(appIcon) ? appIcon : undefined,
     backgroundColor: '#0d1117',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
