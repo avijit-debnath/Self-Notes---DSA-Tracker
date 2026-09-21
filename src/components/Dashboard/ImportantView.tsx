@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, Search, ArrowLeft, ExternalLink, Hash, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 import { useTreeStore } from '../../stores/useTreeStore';
 import { Question } from '../../types';
+import { sortQuestionsByDifficulty } from '../../utils/sorting';
 
 export const ImportantView: React.FC = () => {
   const { questions, branches, setActiveQuestion, setActiveView, toggleImportantQuestion } = useTreeStore();
@@ -10,15 +11,17 @@ export const ImportantView: React.FC = () => {
 
   const importantQuestions = questions.filter(q => q.isImportant && !q.isDeleted);
 
-  const filtered = importantQuestions.filter(q => {
-    if (filterBranchId !== 'all' && q.branchId !== filterBranchId) return false;
-    if (searchQuery.trim()) {
-      const match = q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    q.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-      if (!match) return false;
-    }
-    return true;
-  });
+  const filtered = sortQuestionsByDifficulty(
+    importantQuestions.filter(q => {
+      if (filterBranchId !== 'all' && q.branchId !== filterBranchId) return false;
+      if (searchQuery.trim()) {
+        const match = q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      q.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (!match) return false;
+      }
+      return true;
+    })
+  );
 
   return (
     <div className="flex-1 h-full overflow-y-auto bg-slate-50/50 dark:bg-[#0d1117] p-6 sm:p-10 select-none">

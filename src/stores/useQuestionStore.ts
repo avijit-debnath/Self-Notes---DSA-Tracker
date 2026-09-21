@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Question, PhotoNote } from '../types';
 import { api } from '../services/api';
 import { useTreeStore } from './useTreeStore';
+import { sortQuestionsByDifficulty } from '../utils/sorting';
 
 export type SaveStatus = 'saved' | 'saving' | 'error';
 
@@ -72,7 +73,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
     // Update in tree store in-memory for instant title/status reflection in sidebar
     useTreeStore.setState(state => ({
-      questions: state.questions.map(q => q.id === updated.id ? updated : q)
+      questions: sortQuestionsByDifficulty(state.questions.map(q => q.id === updated.id ? updated : q))
     }));
 
     // Debounce database write (500ms)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ChevronRight,
   Folder,
@@ -11,6 +11,7 @@ import { Branch, Question } from '../../types';
 import { useTreeStore } from '../../stores/useTreeStore';
 import { QuestionNode } from './QuestionNode';
 import { TreeContextMenu, ContextMenuPosition } from './TreeContextMenu';
+import { sortQuestionsByDifficulty } from '../../utils/sorting';
 
 interface BranchNodeProps {
   branch: Branch;
@@ -54,8 +55,10 @@ export const BranchNode: React.FC<BranchNodeProps> = ({
 
   // Direct child sub-branches
   const childBranches = allBranches.filter(b => b.parentId === branch.id);
-  // Direct questions inside this branch
-  const childQuestions = allQuestions.filter(q => q.branchId === branch.id);
+  // Direct questions inside this branch, arranged automatically: Easy -> Medium -> Hard
+  const childQuestions = useMemo(() => {
+    return sortQuestionsByDifficulty(allQuestions.filter(q => q.branchId === branch.id));
+  }, [allQuestions, branch.id]);
 
   const totalQuestionsCount = allQuestions.filter(q => {
     if (q.branchId === branch.id) return true;

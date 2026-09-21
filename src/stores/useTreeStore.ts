@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Branch, Question } from '../types';
 import { api } from '../services/api';
+import { sortQuestionsByDifficulty } from '../utils/sorting';
 
 export type ActiveView = 'dashboard' | 'question' | 'important' | 'trash';
 
@@ -55,7 +56,7 @@ export const useTreeStore = create<TreeState>((set, get) => ({
         api.getBranches(),
         api.getQuestions()
       ]);
-      set({ branches, questions, isLoading: false });
+      set({ branches, questions: sortQuestionsByDifficulty(questions), isLoading: false });
     } catch (err) {
       console.error('Failed to load tree data:', err);
       set({ isLoading: false });
@@ -227,7 +228,7 @@ export const useTreeStore = create<TreeState>((set, get) => ({
       const nextExpanded = new Set(state.expandedBranchIds);
       nextExpanded.add(branchId);
       return {
-        questions: [saved, ...state.questions],
+        questions: sortQuestionsByDifficulty([saved, ...state.questions]),
         expandedBranchIds: nextExpanded,
         activeView: 'question',
         activeQuestionId: saved.id,
@@ -269,7 +270,7 @@ export const useTreeStore = create<TreeState>((set, get) => ({
     };
     await api.saveQuestion(duplicated);
     set(state => ({
-      questions: state.questions.map(x => x.id === newQ.id ? duplicated : x),
+      questions: sortQuestionsByDifficulty(state.questions.map(x => x.id === newQ.id ? duplicated : x)),
       activeQuestionId: newQ.id,
       activeView: 'question'
     }));
@@ -283,7 +284,7 @@ export const useTreeStore = create<TreeState>((set, get) => ({
     const nextExpanded = new Set(get().expandedBranchIds);
     nextExpanded.add(newBranchId);
     set(state => ({
-      questions: state.questions.map(x => x.id === id ? updated : x),
+      questions: sortQuestionsByDifficulty(state.questions.map(x => x.id === id ? updated : x)),
       expandedBranchIds: nextExpanded,
       activeBranchId: state.activeQuestionId === id ? newBranchId : state.activeBranchId
     }));
@@ -295,7 +296,7 @@ export const useTreeStore = create<TreeState>((set, get) => ({
     const updated = { ...q, title: newTitle.trim(), updatedAt: new Date().toISOString() };
     await api.saveQuestion(updated);
     set(state => ({
-      questions: state.questions.map(x => x.id === id ? updated : x)
+      questions: sortQuestionsByDifficulty(state.questions.map(x => x.id === id ? updated : x))
     }));
   }
 }));

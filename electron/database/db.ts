@@ -189,7 +189,14 @@ export function getQuestions(branchId?: string, includeDeleted = false) {
     sql += includeDeleted ? ` WHERE branch_id = ?` : ` AND branch_id = ?`;
     params.push(branchId);
   }
-  sql += ` ORDER BY updated_at DESC`;
+  sql += ` ORDER BY 
+    CASE LOWER(difficulty)
+      WHEN 'easy' THEN 1
+      WHEN 'medium' THEN 2
+      WHEN 'hard' THEN 3
+      ELSE 4
+    END ASC,
+    title ASC`;
 
   const rows = queryAll(sql, params);
   return rows.map(r => ({
@@ -415,7 +422,14 @@ export function deleteVoiceNote(id: string) {
 
 // Important & Starred
 export function getImportantQuestions() {
-  const rows = queryAll(`SELECT * FROM questions WHERE is_important = 1 AND is_deleted = 0 ORDER BY updated_at DESC`);
+  const rows = queryAll(`SELECT * FROM questions WHERE is_important = 1 AND is_deleted = 0 ORDER BY 
+    CASE LOWER(difficulty)
+      WHEN 'easy' THEN 1
+      WHEN 'medium' THEN 2
+      WHEN 'hard' THEN 3
+      ELSE 4
+    END ASC,
+    title ASC`);
   return rows.map(r => ({
     id: r.id,
     branchId: r.branch_id,
