@@ -256,7 +256,18 @@ export const SettingsModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-slate-900 dark:text-white">Personal Access Token (classic: repo scope)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-900 dark:text-white">Personal Access Token (classic: repo scope)</label>
+                    <button
+                      type="button"
+                      onClick={() => api.openExternal('https://github.com/settings/tokens/new?scopes=repo&description=SelfNote+Backup')}
+                      className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                      title="Open GitHub token generation page in browser"
+                    >
+                      <span>Generate token on GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
                   <div className="relative">
                     <input
                       type={showToken ? 'text' : 'password'}
@@ -273,6 +284,9 @@ export const SettingsModal: React.FC = () => {
                       {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  <span className="text-[10px] text-slate-400 mt-0.5">
+                    Requires a Classic token with the <code className="text-indigo-500 dark:text-indigo-400 font-mono">repo</code> scope checked.
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
